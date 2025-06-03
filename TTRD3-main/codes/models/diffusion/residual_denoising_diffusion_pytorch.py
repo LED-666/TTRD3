@@ -881,9 +881,7 @@ class ResidualDiffusion(nn.Module):
         else:
             self.sum_scale = sum_scale if sum_scale else 1.
 
-        # alphas是递减的
         alphas = gen_coefficients(timesteps, schedule="decreased")
-        # 对alphas进行累积求和（cumulative sum），并且将结果限制在0和1之间
         alphas_cumsum = alphas.cumsum(dim=0).clip(0, 1)
         alphas_cumsum_prev = F.pad(alphas_cumsum[:-1], (1, 0), value=1.)
         betas2 = gen_coefficients(
@@ -1114,7 +1112,7 @@ class ResidualDiffusion(nn.Module):
             img_list = []
 
 
-        start_time = time111.perf_counter()  # 使用高精度计时器
+        start_time = time111.perf_counter()  
 
         for time, time_next in tqdm(time_pairs, desc='sampling loop time step'):
             time_cond = torch.full(
@@ -1543,15 +1541,14 @@ class Trainer(object):
 
     def train(self):
 
-        # 设置日志记录器，日志文件名为'training.log'，级别为INFO
         logging.basicConfig(filename='./results/sample/training.log', level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s')
 
         accelerator = self.accelerator
 
         with tqdm(initial=self.step, total=self.train_num_steps, disable=not accelerator.is_main_process) as pbar:
-            cycle_loss = 0  # 用于跟踪每个周期的总损失
-            cycle_steps = 0  # 用于跟踪每个周期的步数
+            cycle_loss = 0  
+            cycle_steps = 0  
 
             while self.step < self.train_num_steps:
                 total_loss = 0.
@@ -1602,19 +1599,17 @@ class Trainer(object):
                         self.sample(milestone)
 
                         logging.info(f'Cycle {milestone}, avg_loss: {avg_loss:.4f}')
-                        cycle_loss = 0  # 重置周期损失
-                        cycle_steps = 0  # 重置周期步数
+                        cycle_loss = 0  
+                        cycle_steps = 0  
 
                         if self.step != 0 and self.step % (self.save_and_sample_every*10) == 0:
                             self.save(milestone)
-
-                # 累加周期损失和步数
 
                 cycle_loss += total_loss
                 cycle_steps += 1
 
 
-                avg_loss = cycle_loss / cycle_steps  # 这里计算的是周期平均损失
+                avg_loss = cycle_loss / cycle_steps 
                 pbar.set_description(f'loss: {total_loss:.4f}; avg_loss: {avg_loss:.4f};')
                 pbar.update(1)
 
@@ -1672,9 +1667,7 @@ class Trainer(object):
                         break
             else:
                 file_name = f'sample-{milestone}.png'
-                # 选择第一个和第四个图像
                 selected_images = [all_images[4], all_images[0], all_images[3], all_images[1], all_images[2]]
-                # 保存选中的图像
                 utils.save_image(selected_images, str(self.results_folder / file_name), nrow=5)
             print("sampe-save " + file_name)
         return milestone
@@ -1682,7 +1675,7 @@ class Trainer(object):
     def test(self, sample=False, last=True, FID=False):
         print("test start")
         if self.condition:
-            self.ema.ema_model.eval()   # val 模式
+            self.ema.ema_model.eval() 
             loader = DataLoader(
                 dataset=self.sample_dataset,
                 batch_size=1)
@@ -1724,15 +1717,15 @@ class Trainer(object):
                         show_x_input_sample = x_input_sample
                         x_input_sample = x_input_sample[1:]
 
-                    if sample:  # 生成样本并添加到 all_images_list
+                    if sample:
                         all_images_list = show_x_input_sample + \
                             list(self.ema.ema_model.sample(
                                 x_input_sample, batch_size=batches, freeu=True))
-                    else:   # 否则，只取最后一批样本
+                    else: 
                         all_images_list = list(self.ema.ema_model.sample(
                             x_input_sample, x_ref, batch_size=batches, freeu=True))
                         all_images_list = [all_images_list[-1]]
-                        if self.crop_patch: # 如果 self.crop_patch 为真，则对样本进行裁剪
+                        if self.crop_patch: 
                             k = 0
                             for img in all_images_list:
                                 pad_size = self.sample_dataset.get_pad_size(i)
@@ -1741,9 +1734,9 @@ class Trainer(object):
                                           pad_size[0], 0:w-pad_size[1]]
                                 all_images_list[k] = img
                                 k += 1
-                # 将所有图像连接起来形成一个大的张量
+
                 all_images = torch.cat(all_images_list, dim=0)
-                # 根据是否是最后一批样本，确定 nrow 的值
+
                 if last:
                     nrow = int(math.sqrt(self.num_samples))
                 else:
