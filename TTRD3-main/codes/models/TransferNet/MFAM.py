@@ -15,7 +15,7 @@ def default(val, d):
 
 def Downsample(dim, dim_out=None):
     return nn.Sequential(
-        nn.Conv2d(dim, default(dim_out, dim), 3, 2, 1)  # 改为3x3卷积
+        nn.Conv2d(dim, default(dim_out, dim), 3, 2, 1)  
     )
 
 
@@ -23,7 +23,7 @@ class CBAMLayer(nn.Module):
     def __init__(self, channel, reduction=16, spatial_kernel=7):
         super(CBAMLayer, self).__init__()
 
-        # channel attention 压缩H,W为1
+        # channel attention
         self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
 
