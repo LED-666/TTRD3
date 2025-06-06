@@ -1,0 +1,52 @@
+mode: "train"
+seed: 10
+cuda_devices: [0]
+debug: false
+
+data:
+  folders:
+    - "../../../dataset/train/hr_256"
+    - "../../../dataset/train/sr_64_256"
+    - "../../../dataset/test/hr_256"
+    - "../../../dataset/test/sr_64_256"
+    - "../../../dataset/ref/hr_256"
+    - "../../../dataset/ref/sr_64_256"
+
+unet:
+  dim: 64
+  dim_mults: [1, 2, 4, 8]
+  share_encoder: -1
+  condition: true
+  input_condition: false
+
+diffusion:
+  image_size: 256
+  timesteps: 1000
+  sampling_timesteps: 10
+  objective: "pred_res_noise"
+  loss_type: "l1"
+  condition: true
+  sum_scale: 0.01
+  input_condition: false
+  input_condition_mask: false
+
+training:
+  train_batch_size: 2
+  num_samples: 1
+  train_lr: 1.0e-4
+  train_num_steps: 300000
+  gradient_accumulate_every: 2
+  ema_decay: 0.995
+  amp: false
+  condition: true
+  save_and_sample_every: 1000
+  equalizeHist: false
+  crop_patch: false
+  generation: false
+  load_checkpoint: 300
+  test_after_train: true
+
+testing:
+  load_checkpoint: 300
+  results_folder: "./results/TTRD3_300000_10"
+  sample: false
